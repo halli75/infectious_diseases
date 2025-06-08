@@ -5,9 +5,9 @@ import java.util.Scanner;
 
 public class DiseaseDatabaseManager {
 
-    static final String URL = "jdbc:postgresql://localhost:5432/diseases";
-    static final String USER = "postgres";
-    static final String PASSWORD = "Arshi123";
+    static final String URL = ""; //url
+    static final String USER = "";  //username
+    static final String PASSWORD = "";//password
 
     static Scanner scanner = new Scanner(System.in);
 
