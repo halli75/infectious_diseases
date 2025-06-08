@@ -1,0 +1,82 @@
+--Transmission type of each disease outbreak in Africa and Asia(1)
+SELECT 
+    Disease_Info.disease_name,
+    Disease_Outbreaks.country,
+    Disease_Outbreaks.region,
+    Disease_Info.transmission
+FROM 
+    Disease_Outbreaks
+JOIN 
+    Disease_Info ON Disease_Outbreaks.disease_id = Disease_Info.disease_id
+WHERE 
+    LOWER(Disease_Outbreaks.region) IN ('africa', 'asia');
+
+
+--Vaccination Rate of every outbreak with over 1000 deaths (2)
+SELECT 
+    Disease_Info.disease_name,
+    Disease_Outbreaks.country,
+    Disease_Outbreaks.region,
+    Disease_Outbreaks.est_deaths,
+    Treatment_Table.vaccination_rate_pct
+FROM 
+    Disease_Outbreaks
+JOIN 
+    Disease_Info ON Disease_Outbreaks.disease_id = Disease_Info.disease_id
+JOIN 
+    Treatment_Table ON Disease_Info.disease_id = Treatment_Table.disease_id
+WHERE 
+    Disease_Outbreaks.est_deaths > 1000
+ORDER BY 
+	Disease_Outbreaks.est_deaths DESC;
+
+--Calculate the mortality rate of outbreaks that do not have a vaccine (3)
+SELECT 
+    Disease_Info.disease_name,
+    Disease_Outbreaks.country,
+    Disease_Outbreaks.region,
+    Disease_Outbreaks.total_cases,
+    Disease_Outbreaks.est_deaths,
+    ROUND(CAST(Disease_Outbreaks.est_deaths AS NUMERIC) / NULLIF(Disease_Outbreaks.total_cases, 0), 4) AS mortality_rate
+FROM 
+    Disease_Outbreaks
+JOIN 
+    Disease_Info ON Disease_Outbreaks.disease_id = Disease_Info.disease_id
+JOIN 
+    Treatment_Table ON Disease_Outbreaks.disease_id = Treatment_Table.disease_id
+WHERE 
+    LOWER(Treatment_Table.vaccine) = 'no';
+
+
+
+--Average incubation period for outbreaks with over 100000 cases but less than 20000 deaths(4)
+SELECT 
+    Disease_Outbreaks.country,
+    Disease_Info.disease_name,
+    Disease_Outbreaks.total_cases,
+    Disease_Outbreaks.est_deaths,
+    ROUND((
+        CAST(SPLIT_PART(REPLACE(Disease_Info.incubation_period_days, ' ', ''), '-', 1) AS NUMERIC) +
+        CAST(SPLIT_PART(REPLACE(Disease_Info.incubation_period_days, ' ', ''), '-', 2) AS NUMERIC)
+    ) / 2, 2) AS avg_incubation_days
+FROM 
+    Disease_Outbreaks
+JOIN 
+    Disease_Info ON Disease_Outbreaks.disease_id = Disease_Info.disease_id
+WHERE 
+    Disease_Outbreaks.total_cases > 100000
+    AND Disease_Outbreaks.est_deaths < 20000
+	ORDER BY country desc;
+
+
+--Total number of cases and deaths caused by outbreaks in each country(5)
+SELECT 
+    country,
+    SUM(total_cases) AS total_cases,
+    SUM(est_deaths) AS total_deaths
+FROM 
+    Disease_Outbreaks
+GROUP BY 
+    country
+ORDER BY 
+    total_cases DESC;
